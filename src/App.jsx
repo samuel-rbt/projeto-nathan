@@ -25,8 +25,8 @@ function findThreePoints(arr, val, idx) {
 }
 
 const TABS = [
-  { id: 'sat-t', label: 'Saturada por T' },
-  { id: 'sat-p', label: 'Saturada por P' },
+  { id: 'sat-t', label: 'Saturada por Temperatura' },
+  { id: 'sat-p', label: 'Saturada por Pressão' },
   { id: 'sup',   label: 'Superaquecido' },
   { id: 'liq',   label: 'Comprimido' },
 ]
@@ -61,7 +61,7 @@ export default function App() {
     <div className={styles.app}>
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <div className={styles.logoTitle}>Termodinâmica água</div>
+          <div className={styles.logoTitle}>H2O Terdinamica</div>
         </div>
       </header>
 
@@ -73,8 +73,8 @@ export default function App() {
         <div className={styles.searchBar}>
           {tab === 'sup' && <select value={supKey} onChange={e => setSupKey(e.target.value)}>{Object.keys(supData).map(k => <option key={k} value={k}>{k} bar</option>)}</select>}
           {tab === 'liq' && <select value={liqKey} onChange={e => setLiqKey(e.target.value)}>{Object.keys(liqData).map(k => <option key={k} value={k}>{k} MPa</option>)}</select>}
-          <input type="number" value={searchVal} onChange={e => setSearchVal(e.target.value)} placeholder="Valor..." onKeyDown={e => e.key === 'Enter' && handleSearch()} />
-          <button onClick={handleSearch}>Buscar</button>
+          <input type="number" value={searchVal} onChange={e => setSearchVal(e.target.value)} placeholder="Digite o valor..." onKeyDown={e => e.key === 'Enter' && handleSearch()} />
+          <button onClick={handleSearch}>Analisar</button>
         </div>
 
         {result && !result.error && (
@@ -85,11 +85,16 @@ export default function App() {
 
         <RankineChart currentResult={result} />
 
-        <div className={styles.tableWrap}><table className={styles.table}><thead><tr>{headers.map(h => <th key={h}>{h}</th>)}</tr></thead><tbody>{rows.map((row, i) => (<tr key={i} className={highlightVal !== null && row[keyIdx] === highlightVal ? styles.highlighted : ''}>{row.map((v, ci) => <td key={ci}>{fmt(v)}</td>)}</tr>))}</tbody></table></div>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead><tr>{headers.map(h => <th key={h}>{h}</th>)}</tr></thead>
+            <tbody>{rows.map((row, i) => (<tr key={i} className={highlightVal !== null && row[keyIdx] === highlightVal ? styles.highlighted : ''}>{row.map((v, ci) => <td key={ci}>{fmt(v)}</td>)}</tr>))}</tbody>
+          </table>
+        </div>
       </main>
 
       <footer className={styles.footer}>
-        Criado por: <strong style={{color: 'var(--text)'}}>Nathan Medeiros de Lucena</strong> | Matrícula: 29298628
+        Desenvolvido por: <strong style={{color: 'var(--text)'}}>Nathan Medeiros de Lucena</strong> | Matrícula: 29298628
       </footer>
     </div>
   )
