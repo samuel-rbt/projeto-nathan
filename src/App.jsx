@@ -168,8 +168,8 @@ export default function App() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div className={styles.title}>H2O Analytics</div>
-        <div className={styles.subtitle}>Thermodynamic Calculator</div>
+        <div className={styles.title}>Analise termodinamica</div>
+        <div className={styles.subtitle}>Agua</div>
       </header>
 
       <main className={styles.bentoGrid}>
