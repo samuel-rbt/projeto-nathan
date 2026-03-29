@@ -10,7 +10,6 @@ function fmt(v) {
   return parseFloat(v.toPrecision(6)).toString();
 }
 
-// 1. O Cálculo Real Oculto
 function interpQuad(x0, y0, x1, y1, x2, y2, x) {
   if (x0 === x1 || x1 === x2 || x0 === x2) return y1;
   const L0 = ((x - x1) * (x - x2)) / ((x0 - x1) * (x0 - x2));
@@ -19,7 +18,6 @@ function interpQuad(x0, y0, x1, y1, x2, y2, x) {
   return y0 * L0 + y1 * L1 + y2 * L2;
 }
 
-// 2. O Gerador Visual de Passo a Passo para o Memorial
 function generateCalcSteps(x0, y0, x1, y1, x2, y2, x, yName="y") {
   if (x0 === x1 || x1 === x2 || x0 === x2) return ["Erro matemático: Divisão por zero."];
   const L0 = ((x - x1) * (x - x2)) / ((x0 - x1) * (x0 - x2));
@@ -61,9 +59,11 @@ export default function App() {
   const [inputT, setInputT] = useState('');
   const [result, setResult] = useState(null);
   const [analysis, setAnalysis] = useState(null);
+  const [tableInfo, setTableInfo] = useState(null);
+  const [highlightVal, setHighlightVal] = useState(null);
 
   const handleSearch = useCallback(() => {
-    setResult(null); setAnalysis(null);
+    setResult(null); setAnalysis(null); setHighlightVal(null); setTableInfo(null);
     const P = parseFloat(inputP);
     const T = parseFloat(inputT);
     const hasP = !isNaN(P);
@@ -82,12 +82,11 @@ export default function App() {
       rowData = satTKeys.map((_, i) => interpQuad(satT[pts[0]][0], satT[pts[0]][i], satT[pts[1]][0], satT[pts[1]][i], satT[pts[2]][0], satT[pts[2]][i], T));
       keys = satTKeys; units = satTUnits; currentT = T; s_val = [rowData[6], rowData[7]];
       
+      setTableInfo({ headers: satTKeys, rows: satT, keyIdx: 0 });
+      setHighlightVal(T);
       setAnalysis({ 
         estado: "SATURADA POR TEMPERATURA", T: currentT, s_val, 
-        memorial: [
-          `1. Variável Principal: T = ${T} °C (Assumindo saturação)`,
-          ...steps
-        ] 
+        memorial: [`1. Variável Principal: T = ${T} °C (Assumindo saturação)`, ...steps] 
       });
     }
     else if (hasP && !hasT) {
@@ -98,12 +97,11 @@ export default function App() {
       rowData = satPKeys.map((_, i) => interpQuad(satP[pts[0]][0], satP[pts[0]][i], satP[pts[1]][0], satP[pts[1]][i], satP[pts[2]][0], satP[pts[2]][i], P));
       keys = satPKeys; units = satPUnits; currentT = rowData[1]; s_val = [rowData[6], rowData[7]];
       
+      setTableInfo({ headers: satPKeys, rows: satP, keyIdx: 0 });
+      setHighlightVal(P);
       setAnalysis({ 
         estado: "SATURADA POR PRESSÃO", T: currentT, s_val, 
-        memorial: [
-          `1. Variável Principal: P = ${P} bar (Assumindo saturação)`,
-          ...steps
-        ] 
+        memorial: [`1. Variável Principal: P = ${P} bar (Assumindo saturação)`, ...steps] 
       });
     }
     else if (hasP && hasT) {
@@ -126,12 +124,14 @@ export default function App() {
         const ptsT = findThreePoints(table.rows, T, 0);
         if (ptsT[0] === -1) { setResult({ error: `T = ${T}°C está fora da tabela superaquecida.` }); return; }
         
-        memorial.push(`\n4. Cálculo das Propriedades Finais (Ex: Volume Específico 'v'):`);
-        const stepsProp = generateCalcSteps(table.rows[ptsT[0]][0], table.rows[ptsT[0]][1], table.rows[ptsT[1]][0], table.rows[ptsT[1]][1], table.rows[ptsT[2]][0], table.rows[ptsT[2]][1], T, "v");
+        memorial.push(`\n4. Cálculo das Propriedades Finais (Ex: Entropia 's'):`);
+        const stepsProp = generateCalcSteps(table.rows[ptsT[0]][0], table.rows[ptsT[0]][3], table.rows[ptsT[1]][0], table.rows[ptsT[1]][3], table.rows[ptsT[2]][0], table.rows[ptsT[2]][3], T, "s");
         memorial.push(...stepsProp);
 
         rowData = [0,1,2,3].map(i => interpQuad(table.rows[ptsT[0]][0], table.rows[ptsT[0]][i], table.rows[ptsT[1]][0], table.rows[ptsT[1]][i], table.rows[ptsT[2]][0], table.rows[ptsT[2]][i], T));
         keys = ['T','v','h','s']; units = ['°C','m³/kg','kJ/kg','kJ/kg·K'];
+        setTableInfo({ headers: table.headers, rows: table.rows, keyIdx: 0 });
+        setHighlightVal(T);
         setAnalysis({ estado, memorial, T, s_val: rowData[3] });
       }
       else if (T < Tsat - 0.1) {
@@ -143,12 +143,14 @@ export default function App() {
         const ptsT = findThreePoints(table.rows, T, 0);
         if (ptsT[0] === -1) { setResult({ error: `T = ${T}°C está fora da tabela de líquido.` }); return; }
         
-        memorial.push(`\n4. Cálculo das Propriedades Finais (Ex: Entalpia 'h'):`);
-        const stepsProp = generateCalcSteps(table.rows[ptsT[0]][0], table.rows[ptsT[0]][2], table.rows[ptsT[1]][0], table.rows[ptsT[1]][2], table.rows[ptsT[2]][0], table.rows[ptsT[2]][2], T, "h");
+        memorial.push(`\n4. Cálculo das Propriedades Finais (Ex: Entropia 's'):`);
+        const stepsProp = generateCalcSteps(table.rows[ptsT[0]][0], table.rows[ptsT[0]][3], table.rows[ptsT[1]][0], table.rows[ptsT[1]][3], table.rows[ptsT[2]][0], table.rows[ptsT[2]][3], T, "s");
         memorial.push(...stepsProp);
 
         rowData = [0,1,2,3].map(i => interpQuad(table.rows[ptsT[0]][0], table.rows[ptsT[0]][i], table.rows[ptsT[1]][0], table.rows[ptsT[1]][i], table.rows[ptsT[2]][0], table.rows[ptsT[2]][i], T));
         keys = ['T','v','h','s']; units = ['°C','m³/kg','kJ/kg','kJ/kg·K'];
+        setTableInfo({ headers: table.headers, rows: table.rows, keyIdx: 0 });
+        setHighlightVal(T);
         setAnalysis({ estado, memorial, T, s_val: rowData[3] });
       }
       else {
@@ -159,6 +161,8 @@ export default function App() {
         
         rowData = satPKeys.map((_, i) => interpQuad(satP[ptsP[0]][0], satP[ptsP[0]][i], satP[ptsP[1]][0], satP[ptsP[1]][i], satP[ptsP[2]][0], satP[ptsP[2]][i], P));
         keys = satPKeys; units = satPUnits;
+        setTableInfo({ headers: satPKeys, rows: satP, keyIdx: 0 });
+        setHighlightVal(P);
         setAnalysis({ estado, memorial, T: rowData[1], s_val: [rowData[6], rowData[7]] });
       }
     }
@@ -168,8 +172,8 @@ export default function App() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div className={styles.title}>Analise termodinamica</div>
-        <div className={styles.subtitle}>Agua</div>
+        <div className={styles.title}>H2O Analytics</div>
+        <div className={styles.subtitle}>Thermodynamic Calculator</div>
       </header>
 
       <main className={styles.bentoGrid}>
@@ -236,6 +240,29 @@ export default function App() {
           <div className={`${styles.card} ${styles.chartCard}`}>
             <div className={styles.cardTitle}>Diagrama T-s (Rankine)</div>
             <RankineChart analysis={analysis} />
+          </div>
+        )}
+
+        {/* Card 5: Tabela de Referência (AGORA SIM!) */}
+        {tableInfo && tableInfo.headers && (
+          <div className={`${styles.card} ${styles.tableCard}`}>
+            <div className={styles.cardTitle}>Tabela Termodinâmica de Referência</div>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    {tableInfo.headers.map(h => <th key={h}>{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableInfo.rows.map((row, i) => (
+                    <tr key={i} className={highlightVal !== null && row[tableInfo.keyIdx] === highlightVal ? styles.highlighted : ''}>
+                      {row.map((v, ci) => <td key={ci}>{fmt(v)}</td>)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

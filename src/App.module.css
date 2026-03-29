@@ -138,12 +138,54 @@
   border-radius: 8px;
   margin-bottom: 8px;
   border-left: 3px solid var(--primary);
-  white-space: pre-wrap; /* MÁGICA PARA MANTER O ESPAÇAMENTO DA MATEMÁTICA */
+  white-space: pre-wrap; 
 }
 
 .chartCard {
   grid-column: span 2;
   height: 500px;
+}
+
+/* --- TABELA ADICIONADA AQUI --- */
+.tableCard {
+  grid-column: span 2;
+  padding: 1.5rem;
+}
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.table th {
+  background: var(--bg-main);
+  color: var(--text-muted);
+  padding: 14px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+}
+.table th:first-child { text-align: left; }
+.table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--bg-main);
+  color: var(--text-dark);
+  text-align: right;
+  white-space: nowrap;
+}
+.table td:first-child { font-weight: 600; text-align: left; }
+.highlighted td {
+  background: rgba(79, 70, 229, 0.08) !important;
+  color: var(--primary) !important;
+  font-weight: 700;
 }
 
 .errorBox {
@@ -168,6 +210,6 @@
 
 @media (max-width: 768px) {
   .bentoGrid { grid-template-columns: 1fr; }
-  .memorialCard, .chartCard, .errorBox { grid-column: span 1; }
+  .memorialCard, .chartCard, .tableCard, .errorBox { grid-column: span 1; }
   .chartCard { height: 400px; }
 }
